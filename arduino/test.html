@@ -1,0 +1,48 @@
+   // Initialize Firebase
+   var config = {
+    apiKey: "AIzaSyBuJiZZNabXuBU-SoRhZFbdecxs0L2O0ac",
+    authDomain: "testproject-51bd9.firebaseapp.com",
+    databaseURL: "https://testproject-51bd9.firebaseio.com",
+    projectId: "testproject-51bd9",
+    storageBucket: "testproject-51bd9.appspot.com",
+    messagingSenderId: "256942259748"
+};
+firebase.initializeApp(config);
+
+
+var database = firebase.database();
+database.ref("/").once('value', function (snapshot) {
+    if (snapshot.exists()) {
+        var content = '';
+        snapshot.forEach(function (data) {
+            var val = data.val();
+            var tableData = [];
+            var sysDate, checkinTime, checkoutTime, email, employeeId;
+            
+            for (var checkin in val.Checkin) {
+                for (var date in val.Checkin[checkin]) {
+                    tableData.push({ 'employeeId': checkin, 'email': val.Checkin[checkin][date]['Email'], 'date': date, 'checkinTime': val.Checkin[checkin][date]['Check in Time'] });
+                }
+            }
+
+            for (var checkout in val.Checkout) {
+                for (var checkoutDate in val.Checkout[checkout]) {
+                    var item = tableData.find(function (i) { return i.employeeId == checkout && i.date == checkoutDate; })
+                    if (item)
+                        item.checkoutTime = val.Checkout[checkout][checkoutDate]['Checkout Time'];
+                }
+            }
+            console.log(tableData);
+            tableData.forEach(function (item) {
+                content += '<tr>';
+                content += '<td>' + item.employeeId + '</td>';
+                content += '<td>' + item.email + '</td>';
+                content += '<td>' + item.date + '</td>';
+                content += '<td>' + item.checkinTime + '</td>';
+                content += '<td>' + (item.checkoutTime ? item.checkoutTime : 'NA') + '</td>';
+                content += '</tr>';
+            });
+        });
+        $('#ex-table').append(content);
+    }
+});
